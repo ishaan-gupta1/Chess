@@ -79,9 +79,13 @@ typedef struct PieceTextures
 
     void drawPiece(char piece, float i, float j)
     {
-        DrawTextureEx(textures[piece], Vector2{ i * WIDTH / 8, j * HEIGHT / 8 }, 0, 0.85333333333, WHITE);
+        DrawTextureEx(textures[piece], Vector2{ i * WIDTH / 8, j * HEIGHT / 8 }, 0, 0.6666666667, WHITE);
     }
 
+    void drawMaterial(char piece, float x, float y)
+    {
+        DrawTextureEx(textures[piece], Vector2{ x, y }, 0, 0.2, WHITE);
+    }
 };
 
 static GameState fenToState(std::string fen)
@@ -268,7 +272,7 @@ std::vector<Move> getPawnMoves(int fr, int fc, GameState state)
 
         if (fc > 0 && state.board.at(fr + 1).at(fc - 1) != '.' && std::isupper((unsigned char)state.board.at(fr + 1).at(fc - 1)))
         {
-            moves.push_back(Move{ .fr = fr, .fc = fc, .tr = fr + 1, .tc = fc - 1 });
+            moves.push_back(Move{ .fr = fr, .fc = fc, .tr = fr + 1, .tc = fc - 1, .isCapture = true });
         }
         else if (fc > 0 && state.enPassant && state.enPassant->first == fr + 1 && state.enPassant->second == fc - 1)
         {
@@ -277,7 +281,7 @@ std::vector<Move> getPawnMoves(int fr, int fc, GameState state)
 
         if (fc < 7 && state.board.at(fr + 1).at(fc + 1) != '.' && std::isupper((unsigned char)state.board.at(fr + 1).at(fc + 1)))
         {
-            moves.push_back(Move{ .fr = fr, .fc = fc, .tr = fr + 1, .tc = fc + 1 });
+            moves.push_back(Move{ .fr = fr, .fc = fc, .tr = fr + 1, .tc = fc + 1, .isCapture = true });
         }
         else if (fc < 7 && state.enPassant && state.enPassant->first == fr + 1 && state.enPassant->second == fc + 1)
         {
@@ -763,6 +767,25 @@ private:
 
     float timeAccumulator = 0;
 
+    std::vector<char> whiteCaptures;
+    std::vector<char> blackCaptures;
+
+    int material = 0;
+    
+    std::unordered_map<char, int> materialPoints = 
+    {
+        {'p', 1},
+        {'b', 3},
+        {'n', 3},
+        {'r', 5},
+        {'q', 9},
+        {'P', 1},
+        {'B', 3},
+        {'N', 3},
+        {'R', 5},
+        {'Q', 9}
+    };
+
 public:
     GameState state;
     std::string fen;
@@ -886,6 +909,44 @@ public:
                     {
                         // Apply move
                         char moveCopy = state.board[it->tr][it->tc];
+
+                        // Update material. While it is possible to also handle en passant
+                        // captures here, I decided to seperate it
+                        char cap = state.board[it->tr][it->tc];
+                        if(it->isCapture)
+                        {
+                            if(state.activeColor == 'w')
+                            {
+                                if(it->isEP)
+                                {
+                                    whiteCaptures.push_back('p');
+                                    material += 1;
+                                    state.board[it->fr][it->tc] = '.';
+                                }
+                                else
+                                {
+                                    whiteCaptures.push_back(cap);
+                                    material += materialPoints.at(cap);
+                                }
+                            }
+                            else
+                            {
+                                if(it->isEP)
+                                {
+                                    blackCaptures.push_back('P');
+                                    material -= 1;
+                                    state.board[it->fr][it->tc] = '.';
+                                }
+                                else
+                                {
+                                    blackCaptures.push_back(cap);
+                                    material -= materialPoints.at(cap);
+                                }
+                            }
+                        }
+
+                        
+
                         state.board[it->tr][it->tc] = state.board[selY][selX];
 
                         char moving = state.board[it->fr][it->fc];
@@ -937,11 +998,6 @@ public:
                             if (it->tr == 0 && it->tc == 0) state.bCastleQueen = false;
                         }
 
-                        
-
-
-                        
-
                         // castle + update castling rights
                         if (it->castle != 'n')
                         {
@@ -972,6 +1028,7 @@ public:
                         
                         state.board[it->fr][it->fc] = '.';
 
+                        // En passant captures
                         if (it->isEP)
                         {
                             if (state.activeColor == 'w')
@@ -983,6 +1040,10 @@ public:
                                 state.board[it->fr][it->tc] = '.';
                             }
                         }
+
+                        // Auto promote -> Queen
+                        if(moving == 'p' && it->tr == 7) {state.board[it->tr][it->tc] = 'q'; material += 9; }
+                        else if(moving == 'P' && it->tr == 0) {state.board[it->tr][it->tc] = 'Q'; material -= 9;}
 
                         selX = 100;
                         selY = 100;
@@ -1026,7 +1087,7 @@ public:
         // Make time strings
         std::string whiteTimeString;
         std::string blackTimeString;
-
+        
         std::string whiteSeconds = std::to_string(whiteTime % 60);
         std::string blackSeconds = std::to_string(blackTime % 60);
 
@@ -1035,7 +1096,7 @@ public:
 
         whiteTimeString = std::to_string(whiteTime / 60) + ":" + whiteSeconds;
         blackTimeString = std::to_string(blackTime / 60) + ":" + blackSeconds;
-
+        
 
         Color whiteTimeColor = (winner == 'b') ? RED : RAYWHITE;
         Color blackTimeColor = (winner == 'w') ? RED : RAYWHITE;
@@ -1043,14 +1104,47 @@ public:
         // Display on correct side
         if (state.activeColor == 'w')
         {
-            DrawText(blackTimeString.c_str(), WIDTH + 50, 200, 40, blackTimeColor);
-            DrawText(whiteTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, whiteTimeColor);
+            DrawText(blackTimeString.c_str(), WIDTH + 75, 200, 40, blackTimeColor);
+            DrawText(whiteTimeString.c_str(), WIDTH + 75, HEIGHT - 200, 40, whiteTimeColor);
         }
         else
         {
-            DrawText(whiteTimeString.c_str(), WIDTH + 50, 200, 40, whiteTimeColor);
-            DrawText(blackTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, blackTimeColor);
+            DrawText(whiteTimeString.c_str(), WIDTH + 75, 200, 40, whiteTimeColor);
+            DrawText(blackTimeString.c_str(), WIDTH + 75, HEIGHT - 200, 40, blackTimeColor);
         }
+    }
+
+    void drawCaptures()
+    {
+        float x = WIDTH;
+        float y = 650;
+        for(char c : whiteCaptures)
+        {
+            textures.drawMaterial(c, x, y);
+            x += 30;
+            if(x + 30 > WINDOWWIDTH)
+            {
+                y += 30;
+                x = WIDTH;
+            }
+        }
+        if(material > 0) DrawText(('+' + std::to_string(material)).c_str(), WIDTH, y+30, 25, WHITE);
+
+        float bx = WIDTH;
+        float by = 100;
+
+        for(char b : blackCaptures)
+        {
+            textures.drawMaterial(b, bx, by);
+            bx += 30;
+            if(bx + 30 > WINDOWWIDTH)
+            {
+                by += 30;
+                bx = WIDTH;
+            }
+        }
+        if(material < 0) DrawText(('+' + std::to_string(-material)).c_str(), WIDTH, by+30, 25, WHITE);
+        // textures.drawMaterial('Q', WIDTH + 100, 700);
     }
 
     void drawBoard() 
@@ -1104,7 +1198,7 @@ public:
                     tc = 7 - m.tc;
                     tr = 7 - m.tr;
                 }
-                DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, 32, Color{ 128, 128, 128, 128 });
+                DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, 24, Color{ 128, 128, 128, 128 });
             }
         }
     }
@@ -1113,6 +1207,7 @@ public:
     {
         drawBoard();
         drawTime();
+        drawCaptures();
     }
 };
 
@@ -1137,5 +1232,3 @@ int main()
     CloseWindow();
     return 0;
 }
-
-
