@@ -1024,29 +1024,18 @@ public:
         DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
 
         // Make time strings
-
         std::string whiteTimeString;
         std::string blackTimeString;
 
-        if (whiteTime == 600)
-        {
-            whiteTimeString = "10:00";
-        }
-        else if (blackTime == 600)
-        {
-            blackTimeString = "10:00";
-        }
-        else
-        {
-            std::string whiteSeconds = std::to_string(whiteTime % 60);
-            std::string blackSeconds = std::to_string(blackTime % 60);
+        std::string whiteSeconds = std::to_string(whiteTime % 60);
+        std::string blackSeconds = std::to_string(blackTime % 60);
 
-            if (whiteTime % 60 < 10) whiteSeconds = "0" + std::to_string(whiteTime % 60);
-            if (blackTime % 60 < 10) blackSeconds = "0" + std::to_string(blackTime % 60);
+        if (whiteTime % 60 < 10) whiteSeconds = "0" + std::to_string(whiteTime % 60);
+        if (blackTime % 60 < 10) blackSeconds = "0" + std::to_string(blackTime % 60);
 
-            whiteTimeString = std::to_string(whiteTime / 60) + ":" + whiteSeconds;
-            blackTimeString = std::to_string(blackTime / 60) + ":" + blackSeconds;
-        }
+        whiteTimeString = std::to_string(whiteTime / 60) + ":" + whiteSeconds;
+        blackTimeString = std::to_string(blackTime / 60) + ":" + blackSeconds;
+
 
         Color whiteTimeColor = (winner == 'b') ? RED : RAYWHITE;
         Color blackTimeColor = (winner == 'w') ? RED : RAYWHITE;
@@ -1148,4 +1137,5 @@ int main()
     CloseWindow();
     return 0;
 }
+
 
