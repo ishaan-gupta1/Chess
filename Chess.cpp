@@ -12,6 +12,9 @@
 
 const unsigned int WIDTH = 1024;
 const unsigned int HEIGHT = 1024;
+
+const unsigned int WINDOWWIDTH = 1200;
+
 const unsigned int FPS = 30;
 
 const std::string defaultBoard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -755,6 +758,11 @@ private:
     std::vector<std::string> previousMoves;
     int currentMove = 0;
 
+    unsigned int whiteTime = 600; // ten minutes
+    unsigned int blackTime = 600; // ten minutes
+
+    float timeAccumulator = 0;
+
 public:
     GameState state;
     std::string fen;
@@ -780,14 +788,40 @@ public:
 
     void update()
     {
-        // Piece selection
-        if (IsKeyPressed(KEY_R) && playing)
+        timeAccumulator += GetFrameTime();
+
+        if (timeAccumulator >= 1.0f && playing) // Calculate time usage
+        {
+            if (state.activeColor == 'w')
+            {
+                whiteTime -= 1;
+                if (whiteTime <= 0)
+                {
+                    winner = 'b';
+                    playing = false;
+                }
+            }
+            else
+            {
+                blackTime -= 1;
+                if (blackTime <= 0)
+                {
+                    winner = 'w';
+                    playing = false;
+                }
+            }
+
+            timeAccumulator -= 1.0f;
+        }
+
+        
+        if (IsKeyPressed(KEY_R) && playing) // Restart Game
         {
             fen = defaultBoard;
             state = fenToState(defaultBoard);
         }
 
-        if (IsKeyPressed(KEY_LEFT) && currentMove > 0)
+        if (IsKeyPressed(KEY_LEFT) && currentMove > 0) // Go backwards one move
         {
             state = fenToState(previousMoves[--currentMove]);
             playing = false;
@@ -796,7 +830,7 @@ public:
             return;
         }
 
-        if (IsKeyPressed(KEY_RIGHT) && currentMove < (previousMoves.size() - 1))
+        if (IsKeyPressed(KEY_RIGHT) && currentMove < (previousMoves.size() - 1)) // Go forwards one move
         {
             state = fenToState(previousMoves[++currentMove]);
             playing = (currentMove == previousMoves.size() - 1);
@@ -810,9 +844,11 @@ public:
             }
             return;
         }
+        // Piece selection
+        int x = GetMouseX() / (WIDTH / 8);
+        int y = GetMouseY() / (HEIGHT / 8);
 
-
-        if (IsMouseButtonPressed(0) && playing)
+        if (IsMouseButtonPressed(0) && playing && x <= 7 && y <=7)
         {
             int x = GetMouseX() / (WIDTH / 8);
             int y = GetMouseY() / (HEIGHT / 8);
@@ -975,9 +1011,56 @@ public:
                         ++currentMove;
 
                         moves = {};
+
                     }
                 }
             }
+        }
+    }
+
+    void drawTime()
+    {
+        // Draw background
+        DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
+
+        // Make time strings
+
+        std::string whiteTimeString;
+        std::string blackTimeString;
+
+        if (whiteTime == 600)
+        {
+            whiteTimeString = "10:00";
+        }
+        else if (blackTime == 600)
+        {
+            blackTimeString = "10:00";
+        }
+        else
+        {
+            std::string whiteSeconds = std::to_string(whiteTime % 60);
+            std::string blackSeconds = std::to_string(blackTime % 60);
+
+            if (whiteTime % 60 < 10) whiteSeconds = "0" + std::to_string(whiteTime % 60);
+            if (blackTime % 60 < 10) blackSeconds = "0" + std::to_string(blackTime % 60);
+
+            whiteTimeString = std::to_string(whiteTime / 60) + ":" + whiteSeconds;
+            blackTimeString = std::to_string(blackTime / 60) + ":" + blackSeconds;
+        }
+
+        Color whiteTimeColor = (winner == 'b') ? RED : RAYWHITE;
+        Color blackTimeColor = (winner == 'w') ? RED : RAYWHITE;
+
+        // Display on correct side
+        if (state.activeColor == 'w')
+        {
+            DrawText(blackTimeString.c_str(), WIDTH + 50, 200, 40, blackTimeColor);
+            DrawText(whiteTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, whiteTimeColor);
+        }
+        else
+        {
+            DrawText(whiteTimeString.c_str(), WIDTH + 50, 200, 40, whiteTimeColor);
+            DrawText(blackTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, blackTimeColor);
         }
     }
 
@@ -1040,12 +1123,13 @@ public:
     void draw()
     {
         drawBoard();
+        drawTime();
     }
 };
 
 int main()
 {
-    InitWindow(WIDTH, HEIGHT, "Chess");
+    InitWindow(WINDOWWIDTH, HEIGHT, "Chess");
     SetTargetFPS(FPS);
 
     Game game(defaultBoard);
