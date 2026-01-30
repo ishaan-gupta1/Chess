@@ -3,7 +3,7 @@ Chess app made in C++, decided to thug it all in one .cpp file, uses FEN to crea
 
 Coded in Microsoft Visual Studio 2026.
 
-Currently has essentially all normal chess features, check, checkmate, en passant, castling, and can move back and forth between moves.
+Currently has essentially all normal chess features, check, checkmate, en passant, castling, and can move back and forth between moves. Has 10:00 timer.
 
 Click pieces to move.
 Press 'R' to restart.
