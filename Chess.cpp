@@ -873,9 +873,6 @@ public:
 
         if (IsMouseButtonPressed(0) && playing && x <= 7 && y <=7)
         {
-            int x = GetMouseX() / (WIDTH / 8);
-            int y = GetMouseY() / (HEIGHT / 8);
-
             if (state.activeColor == 'b')
             {
                 x = 7 - x;
@@ -1237,3 +1234,4 @@ int main()
     CloseWindow();
     return 0;
 }
+
