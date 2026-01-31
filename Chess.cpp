@@ -838,10 +838,20 @@ public:
         }
 
         
-        if (IsKeyPressed(KEY_R) && playing) // Restart Game
+        if (IsKeyPressed(KEY_R)) // Restart Game
         {
             fen = defaultBoard;
             state = fenToState(defaultBoard);
+            winner = 'n';
+            playing = true;
+            previousMoves = {fen};
+            currentMove = 0;
+            whiteTime = 600;
+            blackTime = 600;
+            material = 0;
+            whiteCaptures = {};
+            blackCaptures = {};
+            inCheck = false;
         }
 
         if (IsKeyPressed(KEY_LEFT) && currentMove > 0) // Go backwards one move
@@ -1234,4 +1244,5 @@ int main()
     CloseWindow();
     return 0;
 }
+
 
