@@ -1116,19 +1116,25 @@ public:
 
     void drawCaptures()
     {
+        // 650, 100
         float x = WIDTH;
-        float y = 650;
+        float y = (state.activeColor == 'w') ? 875 : 68;
+        
+        float bx = WIDTH;
+        float by = (y == 875) ? 68 : 875;
+
+        int offset = 32;
         for(char c : whiteCaptures)
         {
             textures.drawMaterial(c, x, y);
-            x += 30;
-            if(x + 30 > WINDOWWIDTH)
+            x += offset;
+            if(x + offset > WINDOWWIDTH)
             {
-                y += 30;
+                y += offset;
                 x = WIDTH;
             }
         }
-        if(material > 0) DrawText(('+' + std::to_string(material)).c_str(), WIDTH, y+30, 25, WHITE);
+        if(material > 0) DrawText(('+' + std::to_string(material)).c_str(), WIDTH, y+offset, 25, WHITE);
 
         float bx = WIDTH;
         float by = 100;
@@ -1136,15 +1142,14 @@ public:
         for(char b : blackCaptures)
         {
             textures.drawMaterial(b, bx, by);
-            bx += 30;
-            if(bx + 30 > WINDOWWIDTH)
+            bx += offset;
+            if(bx + offset > WINDOWWIDTH)
             {
-                by += 30;
+                by += offset;
                 bx = WIDTH;
             }
         }
-        if(material < 0) DrawText(('+' + std::to_string(-material)).c_str(), WIDTH, by+30, 25, WHITE);
-        // textures.drawMaterial('Q', WIDTH + 100, 700);
+        if(material < 0) DrawText(('+' + std::to_string(-material)).c_str(), WIDTH, by+offset, 25, WHITE);
     }
 
     void drawBoard() 
