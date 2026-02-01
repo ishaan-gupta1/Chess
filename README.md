@@ -10,5 +10,11 @@ Pass and play, or play against simple bot.
 Currently has essentially all normal chess features, check, checkmate, en passant, castling, and can move back and forth between moves. Has 10:00 timer.
 
 Click pieces to move.
+
 Press 'R' to restart.
-Use arrow keys to move back in forth in moves.
+
+Use left and right arrow keys to move back in forth in moves.
+
+Use Enter and up and down arrow keys to navigate the menu.
+
+Press 'Q' to go back to menu.
