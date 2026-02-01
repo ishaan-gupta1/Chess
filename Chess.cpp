@@ -19,6 +19,8 @@ const unsigned int FPS = 30;
 
 const std::string defaultBoard = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+const Font font = GetFontDefault();
+
 using Board = std::array<std::array<char, 8>, 8>;
 
 struct GameState
@@ -79,12 +81,12 @@ typedef struct PieceTextures
 
     void drawPiece(char piece, float i, float j)
     {
-        DrawTextureEx(textures[piece], Vector2{ i * WIDTH / 8, j * HEIGHT / 8 }, 0, 0.85333333333, WHITE);
+        DrawTextureEx(textures[piece], Vector2{ i * WIDTH / 8, j * HEIGHT / 8 }, 0, ((float)HEIGHT / 8.0f) / 150.0f, WHITE);
     }
 
     void drawMaterial(char piece, float x, float y)
     {
-        DrawTextureEx(textures[piece], Vector2{ x, y }, 0, 0.21333333333, WHITE);
+        DrawTextureEx(textures[piece], Vector2{ x, y }, 0, ((float)HEIGHT / 32.0f) / 150.0f, WHITE);
     }
 };
 
@@ -788,6 +790,8 @@ private:
 
     char gameSelection = 'p';
 
+    int sinForMenu = 0;
+
 
 public:
     GameState state;
@@ -1150,8 +1154,6 @@ public:
 
                             else if (playing != 'n') state = tryMove(botMoves[0], botMoves, state);
 
-
-
                             appendMove();
                         }
                     }
@@ -1180,8 +1182,8 @@ public:
 
     void drawTime()
     {
+        int fontSize = 40;
         // Draw background
-        DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
 
         // Make time strings
         std::string whiteTimeString;
@@ -1193,23 +1195,28 @@ public:
         if (whiteTime % 60 < 10) whiteSeconds = "0" + std::to_string(whiteTime % 60);
         if (blackTime % 60 < 10) blackSeconds = "0" + std::to_string(blackTime % 60);
 
-        whiteTimeString = std::to_string(whiteTime / 60) + ":" + whiteSeconds;
-        blackTimeString = std::to_string(blackTime / 60) + ":" + blackSeconds;
+        whiteTimeString = (std::to_string(whiteTime / 60) + ":" + whiteSeconds);
+        blackTimeString = (std::to_string(blackTime / 60) + ":" + blackSeconds);
 
 
         Color whiteTimeColor = (winner == 'b') ? RED : RAYWHITE;
         Color blackTimeColor = (winner == 'w') ? RED : RAYWHITE;
 
+        int whiteTimeWidth = MeasureTextEx(GetFontDefault(), whiteTimeString.c_str(), fontSize, fontSize * .1f).x;
+        int blackTimeWidth = MeasureTextEx(GetFontDefault(), blackTimeString.c_str(), fontSize, fontSize * .1f).x;
+        int whiteX = WIDTH + (WINDOWWIDTH - WIDTH) / 2 - whiteTimeWidth / 2;
+        int blackX = WIDTH + (WINDOWWIDTH - WIDTH) / 2 - blackTimeWidth / 2;
+
         // Display on correct side
         if (state.activeColor == 'w')
         {
-            DrawText(blackTimeString.c_str(), WIDTH + 50, 200, 40, blackTimeColor);
-            DrawText(whiteTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, whiteTimeColor);
+            DrawText(blackTimeString.c_str(), blackX, 200, fontSize, blackTimeColor);
+            DrawText(whiteTimeString.c_str(), whiteX, HEIGHT - 200, fontSize, whiteTimeColor);
         }
         else
         {
-            DrawText(whiteTimeString.c_str(), WIDTH + 50, 200, 40, whiteTimeColor);
-            DrawText(blackTimeString.c_str(), WIDTH + 50, HEIGHT - 200, 40, blackTimeColor);
+            DrawText(whiteTimeString.c_str(), whiteX, 200, fontSize, whiteTimeColor);
+            DrawText(blackTimeString.c_str(), blackX, HEIGHT - 200, fontSize, blackTimeColor);
         }
     }
 
@@ -1306,6 +1313,8 @@ public:
 
     void drawMenu()
     {
+        ++sinForMenu;
+        if (sinForMenu >= 314) sinForMenu = 0;
         int titleFontSize = 150;
         int optionFontSize = titleFontSize / 2.5;
 
@@ -1313,7 +1322,7 @@ public:
         Color botColor = (gameSelection == 'b') ? GREEN : LIME;
 
         int titleSize = MeasureTextEx(GetFontDefault(), "CHESS", titleFontSize, titleFontSize * .1f).x;
-        DrawText("CHESS", WINDOWWIDTH / 2 - (titleSize / 2), 100, titleFontSize, LIME);
+        DrawText("CHESS", WINDOWWIDTH / 2 - (titleSize / 2), 100 + 20*sin(0.1*sinForMenu), titleFontSize, LIME);
 
         int passSize = MeasureTextEx(GetFontDefault(), "PASS AND PLAY", optionFontSize, optionFontSize * .1f).x;
         DrawText("PASS AND PLAY", WINDOWWIDTH / 2 - (passSize / 2), 500, optionFontSize, passColor);
@@ -1334,7 +1343,8 @@ public:
         else
         {
             drawBoard();
-            if(playing == 'p') drawTime(); // No time for bot game
+            DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
+            if(playing != 'b') drawTime(); // No time for bot game
             drawCaptures();
         }
     }
