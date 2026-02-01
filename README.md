@@ -1,5 +1,5 @@
 # Chess
-Chess app made in C++, decided to thug it all in one .cpp file, uses FEN to create boards.
+Chess app made in C++ using raylib, decided to thug it all in one .cpp file, uses FEN to create boards.
 
 Coded in Microsoft Visual Studio 2026.
 
