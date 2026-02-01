@@ -1222,13 +1222,13 @@ public:
 
     void drawCaptures()
     {
+        int offset = 32;
+
         float x = WIDTH;
-        float y = (state.activeColor == 'w') ? 875 : 68;
+        float y = (state.activeColor == 'w') ? HEIGHT - 200 + offset : 200 - (4 * offset);
 
         float bx = WIDTH;
-        float by = (y == 875) ? 68 : 875;
-
-        int offset = 32;
+        float by = (y == HEIGHT - 200 + offset) ? 200 - (4*offset) : HEIGHT - 200 + offset;
 
         for (char c : whiteCaptures)
         {
