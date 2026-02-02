@@ -8,7 +8,8 @@ positioning and scaling more dynamic based on resolution, however not all yet is
 
 Pass and play, or play against simple bot.
 
-Currently has essentially all normal chess features, check, checkmate, en passant, castling, and can move back and forth between moves. Has 10:00 timer.
+Currently has essentially all normal chess features, check, checkmate, en passant, castling, and can move back and forth between moves. 
+Has 10:00 timer on pass and play mode.
 
 Click pieces to move.
 
