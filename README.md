@@ -3,7 +3,8 @@ Chess app made in C++ using raylib, decided to thug it all in one .cpp file, use
 
 Coded in Microsoft Visual Studio 2026.
 
-Dimensions are made in mind for my 1440p monitor, currently won't fit all screen sizes.
+Dimensions are made in mind for my 1440p monitor, however dimensions can be changed at top of file and I have tried to make 
+positioning and scaling more dynamic based on resolution, however not all yet is dynamic.
 
 Pass and play, or play against simple bot.
 
