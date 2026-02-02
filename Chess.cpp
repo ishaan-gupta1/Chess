@@ -620,6 +620,12 @@ bool scanCheck(GameState state)
         {
             if (state.board[m.tr][m.tc] == 'q') return true;
         }
+
+        std::vector<Move> kingMoves = getKingMoves(fr, fc, state); // check for king checks
+        for (Move& m : kingMoves)
+        {
+            if (state.board[m.tr][m.tc] == 'k') return true;
+        }
     }
 
     if (color == 'b')
@@ -658,6 +664,12 @@ bool scanCheck(GameState state)
         for (Move& m : queenMoves)
         {
             if (state.board[m.tr][m.tc] == 'Q') return true;
+        }
+
+        std::vector<Move> kingMoves = getKingMoves(fr, fc, state); // check for king checks
+        for (Move& m : kingMoves)
+        {
+            if (state.board[m.tr][m.tc] == 'K') return true;
         }
     }
 
@@ -1315,7 +1327,7 @@ public:
                     tc = 7 - m.tc;
                     tr = 7 - m.tr;
                 }
-                DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, 32, Color{ 128, 128, 128, 128 });
+                DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, HEIGHT / 32, Color{ 128, 128, 128, 128 });
             }
         }
     }
@@ -1353,7 +1365,7 @@ public:
         {
             drawBoard();
             DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
-            if(playing != 'b') drawTime(); // No time for bot game
+            if(gameSelection != 'b') drawTime(); // No time for bot game
             drawCaptures();
         }
     }
