@@ -1049,12 +1049,13 @@ public:
         playing = 'n';
         winner = 'n';
         inCheck = scanCheck(state);
+        moves = {};
     }
 
     void forwardMove()
     {
         state = fenToState(previousMoves[++currentMove]);
-        playing = (currentMove == previousMoves.size() - 1) ? 'p' : 'n';
+        playing = (currentMove == previousMoves.size() - 1) ? gameSelection : 'n';
         inCheck = scanCheck(state);
         std::vector<Move> allLegalMoves = getAllLegalMoves(state);
         if (allLegalMoves.empty())
@@ -1063,6 +1064,7 @@ public:
             if (inCheck) winner = (state.activeColor == 'w') ? 'b' : 'w';
             else winner = 's';
         }
+        moves = {};
     }
 
     void appendMove()
@@ -1102,11 +1104,18 @@ public:
                 forwardMove();
                 return;
             }
+
+            if (IsKeyPressed(KEY_Q)) // Back to menu
+            {
+                restart();
+                playing = 'm';
+            }
+
             // Piece selection
             int x = GetMouseX() / (WIDTH / 8);
             int y = GetMouseY() / (HEIGHT / 8);
 
-            if (IsMouseButtonPressed(0) && playing != 'm' && x <= 7 && y <= 7)
+            if (IsMouseButtonPressed(0) && playing != 'm' && playing != 'n' && x <= 7 && y <= 7)
             {
                 if (state.activeColor == 'b')
                 {
