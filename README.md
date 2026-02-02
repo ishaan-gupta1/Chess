@@ -20,3 +20,5 @@ Use left and right arrow keys to move back in forth in moves.
 Use Enter and up and down arrow keys to navigate the menu.
 
 Press 'Q' to go back to menu.
+
+Press 'Esc' to close the game.
