@@ -665,12 +665,12 @@ bool scanCheck(GameState state)
         {
             if (state.board[m.tr][m.tc] == 'Q') return true;
         }
-
         std::vector<Move> kingMoves = getKingMoves(fr, fc, state); // check for king checks
         for (Move& m : kingMoves)
         {
             if (state.board[m.tr][m.tc] == 'K') return true;
         }
+
     }
 
 
@@ -804,6 +804,23 @@ private:
 
     int sinForMenu = 0;
 
+    std::unordered_map<std::string, bool> settings =
+    {
+        {"Flip Board", true},
+        {"Show Legal Moves", true},
+        {"Timer", true}
+    };
+
+    std::unordered_map<std::string, Rectangle> settingsRectangles;
+
+    int boxSize = 5;
+
+    int titleFontSize = 150;
+    int optionFontSize = titleFontSize / 2.5;
+    int settingFontSize = titleFontSize / 5;
+
+    
+
 
 public:
     GameState state;
@@ -818,6 +835,13 @@ public:
         state = fenToState(defaultBoard);
         previousMoves = { fen };
         int currentMove = 0;
+
+        int h = HEIGHT / 2;
+        for (const auto& setting : settings)
+        {
+            settingsRectangles.insert(std::make_pair(setting.first, Rectangle(5, h + boxSize, settingFontSize - boxSize * 2, settingFontSize - boxSize * 2)));
+            h += settingFontSize;
+        }
     }
 
     Game(std::string fen)
@@ -826,6 +850,12 @@ public:
         state = fenToState(fen);
         previousMoves = { fen };
         int currentMove = 0;
+        int h = HEIGHT / 2;
+        for (const auto& setting : settings)
+        {
+            settingsRectangles.insert(std::make_pair(setting.first, Rectangle(5, h + boxSize, settingFontSize - boxSize * 2, settingFontSize - boxSize * 2)));
+            h += settingFontSize;
+        }
     }
 
     GameState tryMove(Move m, const std::vector<Move>& movesList, GameState& state)
@@ -1007,6 +1037,14 @@ public:
         {
             playing = gameSelection;
         }
+
+        for (const auto& setting : settings)
+        {
+            if (IsMouseButtonPressed(0) && CheckCollisionPointRec(GetMousePosition(), settingsRectangles.at(setting.first)))
+            {
+                settings.at(setting.first) = !setting.second;
+            }
+        }
     }
 
     void handleTime()
@@ -1095,7 +1133,7 @@ public:
 
         else
         {
-            if (playing == 'p') // Update time
+            if (playing == 'p' && settings.at("Timer")) // Update time
             {
                 handleTime();
             }
@@ -1129,7 +1167,7 @@ public:
 
             if (IsMouseButtonPressed(0) && playing != 'm' && playing != 'n' && x <= 7 && y <= 7)
             {
-                if (state.activeColor == 'b')
+                if (state.activeColor == 'b' && settings.at("Flip Board"))
                 {
                     x = 7 - x;
                     y = 7 - y;
@@ -1286,7 +1324,7 @@ public:
                 int jndex = j;
 
                 // flip board
-                if (state.activeColor == 'b' && playing != 'b')
+                if (state.activeColor == 'b' && gameSelection != 'b' && settings.at("Flip Board"))
                 {
                     index = 7 - i;
                     jndex = 7 - j;
@@ -1322,12 +1360,12 @@ public:
                 // flip board
                 int tc = m.tc;
                 int tr = m.tr;
-                if (state.activeColor == 'b')
+                if (state.activeColor == 'b' && settings.at("Flip Board"))
                 {
                     tc = 7 - m.tc;
                     tr = 7 - m.tr;
                 }
-                DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, HEIGHT / 32, Color{ 128, 128, 128, 128 });
+                if(settings.at("Show Legal Moves")) DrawCircle((tc * WIDTH / 8) + WIDTH / 16, (tr * HEIGHT / 8) + +HEIGHT / 16, 32, Color{128, 128, 128, 128});
             }
         }
     }
@@ -1336,8 +1374,6 @@ public:
     {
         ++sinForMenu;
         if (sinForMenu >= 314) sinForMenu = 0;
-        int titleFontSize = 150;
-        int optionFontSize = titleFontSize / 2.5;
 
         Color passColor = (gameSelection == 'p') ? GREEN : LIME;
         Color botColor = (gameSelection == 'b') ? GREEN : LIME;
@@ -1350,6 +1386,17 @@ public:
 
         int botSize = MeasureTextEx(GetFontDefault(), "BOT", optionFontSize, optionFontSize * .1f).x;
         DrawText("BOT", WINDOWWIDTH / 2 - (botSize / 2), 700, optionFontSize, botColor);
+
+        int h = HEIGHT / 2;
+        int i = 0;
+        for (const auto& setting : settings)
+        {
+            DrawRectangle(0, h, settingFontSize, settingFontSize, LIME);
+            if(setting.second) DrawRectangle(settingsRectangles.at(setting.first).x, settingsRectangles.at(setting.first).y, settingsRectangles.at(setting.first).width, settingsRectangles.at(setting.first).height, GREEN);
+            DrawText(setting.first.c_str(), settingFontSize + boxSize, h, settingFontSize, LIME);
+            h += settingFontSize;
+            ++i;
+        }
     }
 
     void draw()
@@ -1365,7 +1412,7 @@ public:
         {
             drawBoard();
             DrawRectangle(WIDTH, 0, WINDOWWIDTH - WIDTH, HEIGHT, BLACK);
-            if(gameSelection != 'b') drawTime(); // No time for bot game
+            if(playing != 'b' && settings.at("Timer")) drawTime(); // No time for bot game
             drawCaptures();
         }
     }
